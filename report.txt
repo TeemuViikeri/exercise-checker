@@ -1,0 +1,9 @@
+e02: Error: Command failed: java e02
+Error: Could not find or load main class e02
+Caused by: java.lang.ClassNotFoundException: e02
+e02: Error: Command failed: java e02
+Error: Could not find or load main class e02
+Caused by: java.lang.ClassNotFoundException: e02
+e02: Error: Command failed: java e02
+Error: Could not find or load main class e02
+Caused by: java.lang.ClassNotFoundException: e02
