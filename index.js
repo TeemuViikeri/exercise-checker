@@ -30,23 +30,28 @@ try {
       const dName = dir.match(dRegex)[0]
       console.log(`dName: ${dName}`)
 
-      // Create a folder and path variable for reports
       const reports = path.join(__dirname, 'Documents', 'drive', dName)
 
-      if (!(fs.existsSync(path.join(reports, 'reports')))) {
+      // Check if reports folder exists, if not, create it
+      if (!fs.existsSync(path.join(reports, 'reports'))) {
         execSync('mkdir reports', { cwd: reports })
       }
 
+      // Create path variable for a report file
       const rPath = path.join(reports, 'reports', 'report.txt')
       console.log(`rPath: ${rPath}`)
 
-      try {
-        console.log('Creating report file...')
-        // Create new report text file
-        fs.writeFileSync(rPath, 'REPORT\n')
-      } catch (error) {
-        console.log('There was an issue with creating report.txt')
-        console.log(error)
+      // Create new report text file if it doesn't exist yet
+      if (!fs.existsSync(rPath)) {
+        try {
+          console.log('Creating report file...')
+          fs.writeFileSync(rPath, 'REPORT\n')
+        } catch (error) {
+          console.log(
+            'There was an issue with creating report.txt or it already exists'
+          )
+          console.log(error)
+        }
       }
 
       try {
@@ -59,11 +64,19 @@ try {
 
       let fData = ''
 
-      // Put the file list into a string variable
+      // Put the exercises file list into a string variable
       fData = fs.readFileSync(`${dir}/files.txt`, 'utf8')
-      const files = fData.split('\n')
-      // TODO: Sort files --> e01, e02...
-      files.pop()
+      // Split the exercises into string array
+      const fSplit = fData.split('\n').pop()
+      // Sort array by exercise number in ascending order
+      const files = fSplit.sort((a, b) => {
+        const aInt = parseInt(a)
+        const bInt = parseInt(b)
+
+        if (aInt < bInt) return -1
+        if (aInt > bInt) return 1
+        return 0
+      })
 
       files.forEach((file) => {
         console.log('--- Files ---')
@@ -76,38 +89,68 @@ try {
         const fName = file.match(fRegex)[0]
         console.log(`fName: ${fName}`)
 
-        try {
-          console.log('--- javac ---')
-          console.log('compiling...')
-          // Create a path object for the file
-          const fPath = path.join(dir, 'exercises', fName)
-          console.log(`fPath: ${fPath}`)
-          // Compile the current file
-          execSync(`javac ${fName}.java`, { cwd: fPath })
-          console.log('compiled...')
-        } catch (error) {
-          console.log(rPath)
-          fs.appendFileSync(rPath, `${fName}: ${error}\n`, 'utf8')
+        // Read report data from reports.txt
+        const rData = fs.readFileSync(rPath, 'utf8')
+        const rSplit = rData.split('\n')
+
+        // Skip this file checking if ex is OK or in manual checking
+        if (
+          !rSplit.includes(`${fName}: OK`) ||
+          rSplit.includes(`${fName}: IN MANUAL CHECK`)
+        ) {
           return
         }
 
-        // TODO: add reporting for Scanner exercises
-
+        // Create a path object for the file
+        const fPath = path.join(dir, 'exercises', fName)
+        console.log(`fPath: ${fPath}`)
+        // Initialize output variable
         let output = ''
 
         try {
-          console.log('--- java ---')
-          console.log('running...')
-          output = execSync(`java ${fName}`, {
-            cwd: `${dir}/exercises/${fName}`,
-          })
-            .toString()
-            .trim()
+          // Compile the current file
+          compile(fName, fPath)
+          // Run the current file
+          const output = run(fName, fPath)
         } catch (error) {
-          fs.appendFileSync(rPath, `${fName}: ${error}\n`, 'utf8')
+          // If ex was wrong, replace eXX: WRONG with error message
+          if (rSplit.includes(`${fName}: WRONG`)) {
+            const regex = `${fName}: WRONG`
+            const re = RegExp(regex, 'g')
+            const result = rData.replace(re, `${fName}: ERROR\n${error}\n`)
+
+            try {
+              fs.writeFileSync(rPath, result)
+            } catch (error) {
+              console.log("There was an error with writing to report.txt");
+              console.log(error);
+            }
+
+            return
+          }
+
+          // If ex was erroneous, replace eXX: ERROR... with new error in data
+          if (rData.includes(`${fName}: ERROR`)) {
+            const regex = `${fName}.+\n(.+\n)*(?=e\d\d)`
+            const re = RegExp(regex, 'g')
+            const result = rData.replace(re, `${fName}: ERROR\n${error}\n`)
+
+            try {
+              fs.writeFileSync(rPath, result)
+            } catch (error) {
+              console.log("There was an error with writing to report.txt");
+              console.log(error);
+            }
+
+            return
+          })
+
+          // Otherwise add error message to ex
+          fs.appendFileSync(rPath, `${fName}: ERROR\n${error}\n`, 'utf8')
           return
         }
 
+        // COMPARE ANSWER TO MODEL ANSWER
         check(fName, output, dName)
       })
       execSync('rm files.txt', { cwd: dir })
@@ -120,6 +163,25 @@ try {
   console.log(error)
 }
 
+const compile = (fName, fPath) => {
+  console.log('--- javac ---')
+  console.log('compiling...')
+  execSync(`javac ${fName}.java`, { cwd: fPath })
+  console.log('file was compiled...');
+
+}
+
+const run = (fName, fPath) => {
+  console.log('--- java ---')
+  console.log('running...')
+  const output = execSync(`java ${fName}`, { cwd: fPath })
+            .toString()
+            .trim()
+  console.log("file was run...");
+  return output
+}
+
+// TODO: Add model answers and create new and replaced reports
 const check = (exercise, answer, dName) => {
   console.log('checking...')
 
