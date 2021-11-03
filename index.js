@@ -22,7 +22,7 @@ try {
       console.log('--- Directories ---')
       console.log(`dir: ${dir}`)
 
-      console.log();
+      console.log()
 
       // Create regex for directory name
       const dRegex = /tamk-java-\w+-\w+/
@@ -32,8 +32,8 @@ try {
 
       // Create a folder and path variable for reports
       const reports = path.join(__dirname, 'Documents', 'drive', dName)
-      execSync('mkdir reports', { cwd: reports})
-      const rPath = path.join(reports, 'report.txt')
+      execSync('mkdir reports', { cwd: reports })
+      const rPath = path.join(reports, 'reports', 'report.txt')
       console.log(`rPath: ${rPath}`)
 
       try {
@@ -106,7 +106,9 @@ try {
 
         check(fName, output, dName)
       })
+      execSync('rm files.txt', { cwd: dir })
     })
+    execSync('rm dirs.txt')
     console.timeEnd('ex-checker')
   })
 } catch (error) {
