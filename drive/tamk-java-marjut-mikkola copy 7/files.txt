@@ -1,2 +1,0 @@
-./exercises/e02/e02.java
-./exercises/e01/e01.java

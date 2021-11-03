@@ -31,7 +31,7 @@ try {
       console.log(`dName: ${dName}`)
 
       // Create a new path object for report.txt
-      const reports = path.join(__dirname, 'drive', dName, 'reports')
+      const reports = path.join(__dirname, 'Documents', 'drive', dName, 'reports')
       const rPath = path.join(reports, 'report.txt')
       console.log(`rPath: ${rPath}`)
 
@@ -57,6 +57,7 @@ try {
       // Put the file list into a string variable
       fData = fs.readFileSync(`${dir}/files.txt`, 'utf8')
       const files = fData.split('\n')
+      // TODO: Sort files --> e01, e02...
       files.pop()
 
       files.forEach((file) => {
@@ -84,6 +85,8 @@ try {
           fs.appendFileSync(rPath, `${fName}: ${error}\n`, 'utf8')
           return
         }
+
+        // TODO: add reporting for Scanner exercises
 
         let output = ''
 
@@ -113,7 +116,7 @@ try {
 const check = (exercise, answer, dName) => {
   console.log('checking...')
 
-  const reports = path.join(__dirname, 'drive', dName, 'reports')
+  const reports = path.join(__dirname, 'Documents', 'drive', dName, 'reports')
   const rPath = path.join(reports, 'report.txt')
   console.log(`rPath: ${rPath}`)
 
@@ -133,6 +136,7 @@ const check = (exercise, answer, dName) => {
         fs.appendFileSync(rPath, `e02: WRONG\n`)
       }
       break
+    // TODO: Add model answers and reporting
     default:
       break
   }

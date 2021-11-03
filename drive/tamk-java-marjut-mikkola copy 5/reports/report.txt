@@ -1,3 +1,0 @@
-REPORT
-e02: Error: spawnSync /bin/sh ENOBUFS
-e01: OK
