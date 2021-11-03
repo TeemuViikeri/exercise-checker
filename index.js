@@ -30,8 +30,9 @@ try {
       const dName = dir.match(dRegex)[0]
       console.log(`dName: ${dName}`)
 
-      // Create a new path object for report.txt
-      const reports = path.join(__dirname, 'Documents', 'drive', dName, 'reports')
+      // Create a folder and path variable for reports
+      const reports = path.join(__dirname, 'Documents', 'drive', dName)
+      execSync('mkdir reports', { cwd: reports})
       const rPath = path.join(reports, 'report.txt')
       console.log(`rPath: ${rPath}`)
 
