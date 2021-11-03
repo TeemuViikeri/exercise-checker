@@ -1,0 +1,3 @@
+REPORT
+e02: WRONG
+e01: OK

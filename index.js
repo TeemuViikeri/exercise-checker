@@ -6,7 +6,8 @@ const path = require('path')
 try {
   console.log('Scheduling...')
   // Schedule function call every 10 seconds
-  schedule.scheduleJob('*/30 * * * * *', () => {
+  schedule.scheduleJob('6 * * * *', () => {
+    console.time('ex-checker')
     // Find all directiories that start with tamk-java-* and put the output into text file
     execSync('find . -name tamk-java-* > dirs.txt')
 
@@ -36,7 +37,7 @@ try {
 
       try {
         console.log('Creating report file...')
-        // Remove report text file under the current directory
+        // Create new report text file
         fs.writeFileSync(rPath, 'REPORT\n')
       } catch (error) {
         console.log('There was an issue with creating report.txt')
@@ -102,6 +103,7 @@ try {
         check(fName, output, dName)
       })
     })
+    console.timeEnd('ex-checker')
   })
 } catch (error) {
   console.log('There was an error in scheduling...')
