@@ -32,7 +32,11 @@ try {
 
       // Create a folder and path variable for reports
       const reports = path.join(__dirname, 'Documents', 'drive', dName)
-      execSync('mkdir reports', { cwd: reports })
+
+      if (!(fs.existsSync(path.join(reports, 'reports')))) {
+        execSync('mkdir reports', { cwd: reports })
+      }
+
       const rPath = path.join(reports, 'reports', 'report.txt')
       console.log(`rPath: ${rPath}`)
 
