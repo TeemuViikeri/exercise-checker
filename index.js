@@ -19,10 +19,8 @@ try {
     console.log(dirs)
 
     dirs.forEach((dir) => {
-      console.log('--- Directories ---')
+      console.log('--- Directory ---')
       console.log(`dir: ${dir}`)
-
-      console.log()
 
       // Create regex for directory name
       const dRegex = /tamk-java-\w+-\w+/
@@ -62,10 +60,8 @@ try {
         return
       }
 
-      let fData = ''
-
       // Put the exercises file list into a string variable
-      fData = fs.readFileSync(`${dir}/files.txt`, 'utf8')
+      const fData = fs.readFileSync(`${dir}/files.txt`, 'utf8')
       // Split the exercises into string array
       const fSplit = fData.split('\n')
       if (fSplit[fSplit.length - 1] === "") fSplit.pop()
@@ -80,8 +76,9 @@ try {
         return 0
       })
 
+      console.log('--- Files ---')
+      console.log(files);
       files.forEach((file) => {
-        console.log('--- Files ---')
         console.log(`dir: ${dir}`)
         console.log(`file: ${file}`)
 
@@ -133,7 +130,7 @@ try {
           // Run the current file
           output = run(fName, fPath)
         } catch (error) {
-          const text = `ERROR\n${error}}\n`
+          const text = `ERROR\n${error}`
 
           // If ex has already been reported, replace it with error message
           if (rData.includes(`${fName}`)) {
@@ -148,9 +145,10 @@ try {
 
         // COMPARE ANSWER TO MODEL ANSWER
         check(fName, output, dName)
-        sortReport(rData, rPath)
       })
+      sortReport(rData, rPath)
       execSync('rm files.txt', { cwd: dir })
+      console.log();
     })
     execSync('rm dirs.txt')
     console.timeEnd('ex-checker')
@@ -246,18 +244,17 @@ const check = (exercise, answer, dName) => {
 
   // If not, add it to file WRONG
   try {
-    append(rPath, exercise, `${exercise}: WRONG\n`)
+    append(rPath, exercise, `WRONG`)
   } catch (error) {
     console.log('There was an error with writing to report.txt')
     console.log(error)
   }
-
-  console.log()
 }
 
 const sortReport = (rData, rPath) => {
   const regex = RegExp("\\n(?=e\\d\\d)")
   const reports = rData.split(regex)
+  reports.shift()
 
   const sortedData = reports.sort((a, b) => {
     const aEx = a.match(RegExp(/(?<=e)\d\d/))[0]
@@ -268,10 +265,15 @@ const sortReport = (rData, rPath) => {
     if (aInt < bInt) return -1
     if (aInt > bInt) return 1
     return 0
-  }).join("\n")
+  })
+
+  sortedData.unshift("REPORT")
+
+  const sortedReport = sortedData.join("\n")
+  console.log(sortedReport);
 
   try {
-    fs.writeFileSync(rPath, sortedData)
+    fs.writeFileSync(rPath, sortedReport)
   } catch (error) {
     console.log('There was an error with writing to report.txt')
     console.log(error)
