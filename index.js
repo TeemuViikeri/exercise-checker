@@ -91,12 +91,11 @@ try {
 
         // Read report data from reports.txt
         const rData = fs.readFileSync(rPath, 'utf8')
-        const rSplit = rData.split('\n')
 
         // Skip this file checking if ex is OK or in manual checking
         if (
-          !rSplit.includes(`${fName}: OK`) ||
-          rSplit.includes(`${fName}: IN MANUAL CHECK`)
+          !rData.includes(`${fName}: OK`) ||
+          rData.includes(`${fName}: IN MANUAL CHECK`)
         ) {
           return
         }
@@ -110,11 +109,14 @@ try {
         try {
           // Compile the current file
           compile(fName, fPath)
+
+          // TODO: Add Scanner exercise reporting here
+
           // Run the current file
           const output = run(fName, fPath)
         } catch (error) {
           // If ex was wrong, replace eXX: WRONG with error message
-          if (rSplit.includes(`${fName}: WRONG`)) {
+          if (rData.includes(`${fName}: WRONG`)) {
             const regex = `${fName}: WRONG`
             const re = RegExp(regex, 'g')
             const result = rData.replace(re, `${fName}: ERROR\n${error}\n`)
@@ -122,8 +124,8 @@ try {
             try {
               fs.writeFileSync(rPath, result)
             } catch (error) {
-              console.log("There was an error with writing to report.txt");
-              console.log(error);
+              console.log('There was an error with writing to report.txt')
+              console.log(error)
             }
 
             return
@@ -131,19 +133,19 @@ try {
 
           // If ex was erroneous, replace eXX: ERROR... with new error in data
           if (rData.includes(`${fName}: ERROR`)) {
-            const regex = `${fName}.+\n(.+\n)*(?=e\d\d)`
+            const regex = `${fName}.+\\n(.+\\n)*(?=e\\d\\d:)`
             const re = RegExp(regex, 'g')
             const result = rData.replace(re, `${fName}: ERROR\n${error}\n`)
 
             try {
               fs.writeFileSync(rPath, result)
             } catch (error) {
-              console.log("There was an error with writing to report.txt");
-              console.log(error);
+              console.log('There was an error with writing to report.txt')
+              console.log(error)
             }
 
             return
-          })
+          }
 
           // Otherwise add error message to ex
           fs.appendFileSync(rPath, `${fName}: ERROR\n${error}\n`, 'utf8')
@@ -167,17 +169,14 @@ const compile = (fName, fPath) => {
   console.log('--- javac ---')
   console.log('compiling...')
   execSync(`javac ${fName}.java`, { cwd: fPath })
-  console.log('file was compiled...');
-
+  console.log('file was compiled...')
 }
 
 const run = (fName, fPath) => {
   console.log('--- java ---')
   console.log('running...')
-  const output = execSync(`java ${fName}`, { cwd: fPath })
-            .toString()
-            .trim()
-  console.log("file was run...");
+  const output = execSync(`java ${fName}`, { cwd: fPath }).toString().trim()
+  console.log('file was run...')
   return output
 }
 
@@ -187,27 +186,51 @@ const check = (exercise, answer, dName) => {
 
   const reports = path.join(__dirname, 'Documents', 'drive', dName, 'reports')
   const rPath = path.join(reports, 'report.txt')
-  console.log(`rPath: ${rPath}`)
+  const rData = fs.readFileSync(rPath, 'utf8')
+
+  const aPath = path.join(__dirname, 'answers.txt')
+  const aData = fs.readFileSync(aPath, 'utf8')
+
+  // e03: \n(.+\n)*(?=(e\d\d)|(\Z))
+  const re = `(?<=${file}: \\n)(((.+\\n?)*?)(?=(e\\d\\d: \\n)|\\Z))`
+  const regex = RegExp(re, 'gm')
+  const model = aData.match(regex)
 
   console.log('reporting...')
-  switch (exercise) {
-    case 'e01':
-      if (answer === 'Hello World') {
-        fs.appendFileSync(rPath, `e01: OK\n`)
-      } else {
-        fs.appendFileSync(rPath, `e01: WRONG\n`)
-      }
-      break
-    case 'e02':
-      if (answer === '4') {
-        fs.appendFileSync(rPath, `e02: OK\n`)
-      } else {
-        fs.appendFileSync(rPath, `e02: WRONG\n`)
-      }
-      break
-    // TODO: Add model answers and reporting
-    default:
-      break
+
+  const correct = false
+
+  if (answer === model) correct = true
+
+  // If ex was already in report.txt, replace it with answer comparison result
+  if (rData.includes(`${fName}`)) {
+    // Don't do anything if the exercise was previously wrong
+    if (!correct && rData.includes(`${fName}: WRONG`)) return
+
+    const regex = `${fName}: ([A-Z]+( )?)+\\n?((.+\\n)*?(?=(e\\d\\d)|\\Z))`
+    const re = RegExp(regex, 'g')
+    const exResult = correct ? 'OK' : 'WRONG'
+    const result = rData.replace(re, `${fName}: ${exResult}\n`)
+
+    try {
+      fs.writeFileSync(rPath, result)
+    } catch (error) {
+      console.log('There was an error with writing to report.txt')
+      console.log(error)
+    }
+
+    return
   }
+
+  // If not, add it to file WRONG
+  try {
+    fs.appendFileSync(rPath, `${exercise}: WRONG\n`)
+  } catch (error) {
+    console.log("There was an error with writing to report.txt");
+    console.log(error);
+  }
+
   console.log()
 }
+
+// TODO: Create function for sorting report.txt
