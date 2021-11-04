@@ -67,7 +67,9 @@ try {
       // Put the exercises file list into a string variable
       fData = fs.readFileSync(`${dir}/files.txt`, 'utf8')
       // Split the exercises into string array
-      const fSplit = fData.split('\n').pop()
+      const fSplit = fData.split('\n')
+      if (fSplit[fSplit.length - 1] === "") fSplit.pop()
+
       // Sort array by exercise number in ascending order
       const files = fSplit.sort((a, b) => {
         const aInt = parseInt(a)
