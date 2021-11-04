@@ -224,7 +224,7 @@ const check = (exercise, answer, dName) => {
   const aPath = path.join(__dirname, 'answers.txt')
   const aData = fs.readFileSync(aPath, 'utf8')
 
-  const re = `(?<=${file}: \\n)(((.+\\n?)*?)(?=(e\\d\\d: \\n)|\\Z))`
+  const re = `(?<=${exercise}: \\n)(((.+\\n?)*?)(?=(e\\d\\d: \\n)|\\Z))`
   const regex = RegExp(re, 'gm')
   const model = aData.match(regex)
 
