@@ -175,7 +175,7 @@ const compile = (fName, fPath) => {
 const run = (fName, fPath) => {
   console.log('--- java ---')
   console.log('running...')
-  const output = execSync(`java ${fName}`, { cwd: fPath }).toString().trim()
+  const output = execSync(`java ${fName}`, { cwd: fPath }).toString().slice(0, -1)
   console.log('file was run...')
   return output
 }
