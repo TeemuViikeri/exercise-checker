@@ -20,9 +20,9 @@ e09:
 SCANNER
 e10: 
 YHDISTÄ/SCANNER
-e11: 
+e11:
+false 
 true
-false
 true
 e12: 
 ***
