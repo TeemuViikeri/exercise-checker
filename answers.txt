@@ -1,0 +1,136 @@
+e01: 
+Hello world
+e02: 
+Osaan ohjelmoida
+e03: 
+STANDARD
+e04: 
+SCANNER
+e05: 
+STANDARD
+e06: 
+SCANNER
+e07: 
+SCANNER
+e08: 
+    *
+  * * *
+* * * * *
+e09: 
+SCANNER
+e10a: 
+YHDISTÄ/SCANNER
+e10b: 
+YHDISTÄ/SCANNER
+e11: 
+true
+false
+true
+e12: 
+***
++
++
++
++
++
++
++
++
+e13: 
+<><><><><><><><><><><><><><><><><><><><><><><><><><>
+ABC
+ABC
+ABC
+ABC
+ABC
+ABC
+ABC
+ABC
+ABC
+ABC
+ABC
+ABC
+ABC
+ABC
+ABC
+e14: 
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+e15: 
+10
+9
+8
+7
+6
+5
+4
+3
+2
+1
+e16: 
+15
+0
+0
+22
+e17: 
+15
+0
+0
+22
+10
+3
+13
+18
+e18: 
+10
+3
+13
+18
+e19: 
+11
+10
+e20: 
+Tulostuskerta 1
+Tulostuskerta 2
+Tulostuskerta 3
+Tulostuskerta 4
+Tulostuskerta 5
+Tulostuskerta 6
+Tulostuskerta 7
+Tulostuskerta 8
+Tulostuskerta 9
+Tulostuskerta 10
+e21: 
+SCANNER
+e22: 
+Method worked.
+e23: 
+Jukka, age 50
+e24: 
+100
+e25: 
+Hilda, age 100
+e26: 
+8
+e27: 
+STANDARD
+e28: 
+xxxx
+xxxx
+xxxx
+xxxx
+e29: 
+x
+ x
+  x
+   x
+e30: 
+SCANNER
