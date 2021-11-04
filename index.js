@@ -1,5 +1,5 @@
 const schedule = require('node-schedule')
-const { exec, execSync } = require('child_process')
+const { execSync } = require('child_process')
 const fs = require('fs')
 const path = require('path')
 
@@ -94,7 +94,7 @@ try {
 
         // Skip this file checking if ex is OK or in manual checking
         if (
-          !rData.includes(`${fName}: OK`) ||
+          rData.includes(`${fName}: OK`) ||
           rData.includes(`${fName}: IN MANUAL CHECK`)
         ) {
           return
@@ -103,6 +103,7 @@ try {
         // Create a path object for the file
         const fPath = path.join(dir, 'exercises', fName)
         console.log(`fPath: ${fPath}`)
+
         // Initialize output variable
         let output = ''
 
@@ -110,50 +111,42 @@ try {
           // Compile the current file
           compile(fName, fPath)
 
-          // TODO: Add Scanner exercise reporting here
+          // Check if exercise is reviewable or not
+          const isStandard = checkIfStandard(fName)
 
-          // Run the current file
-          const output = run(fName, fPath)
-        } catch (error) {
-          // If ex was wrong, replace eXX: WRONG with error message
-          if (rData.includes(`${fName}: WRONG`)) {
-            const regex = `${fName}: WRONG`
-            const re = RegExp(regex, 'g')
-            const result = rData.replace(re, `${fName}: ERROR\n${error}\n`)
-
-            try {
-              fs.writeFileSync(rPath, result)
-            } catch (error) {
-              console.log('There was an error with writing to report.txt')
-              console.log(error)
+          // If not, add to report the exercise goes to manual check
+          if (!isStandard) {
+            const text = 'IN MANUAL CHECK'
+            // If there is a report for the current file, replace it with "IN MANUAL CHECK"
+            if (rData.includes(`${fName}`)) {
+              replace(rData, rPath, fName, text)
+              return
             }
 
+            // If not, append the "IN MANUAL CHECK" to report.txt
+            append(rPath, fName, text)
             return
           }
 
-          // If ex was erroneous, replace eXX: ERROR... with new error in data
-          if (rData.includes(`${fName}: ERROR`)) {
-            const regex = `${fName}.+\\n(.+\\n)*(?=e\\d\\d:)`
-            const re = RegExp(regex, 'g')
-            const result = rData.replace(re, `${fName}: ERROR\n${error}\n`)
+          // Run the current file
+          output = run(fName, fPath)
+        } catch (error) {
+          const text = `ERROR\n${error}}\n`
 
-            try {
-              fs.writeFileSync(rPath, result)
-            } catch (error) {
-              console.log('There was an error with writing to report.txt')
-              console.log(error)
-            }
-
+          // If ex has already been reported, replace it with error message
+          if (rData.includes(`${fName}`)) {
+            replace(rData, rPath, fName, text)
             return
           }
 
           // Otherwise add error message to ex
-          fs.appendFileSync(rPath, `${fName}: ERROR\n${error}\n`, 'utf8')
+          append(rPath, fName, text)
           return
         }
 
         // COMPARE ANSWER TO MODEL ANSWER
         check(fName, output, dName)
+        sortReport(rData, rPath)
       })
       execSync('rm files.txt', { cwd: dir })
     })
@@ -172,15 +165,53 @@ const compile = (fName, fPath) => {
   console.log('file was compiled...')
 }
 
+const checkIfStandard = (fName) => {
+  // Don't continue if exercise is not reviewable
+  switch (fName) {
+    case 'e03':
+    case 'e04':
+    case 'e05':
+    case 'e06':
+    case 'e07':
+    case 'e10':
+    case 'e21':
+    case 'e27':
+    case 'e30':
+      return false
+    default:
+      return true
+  }
+}
+
 const run = (fName, fPath) => {
   console.log('--- java ---')
   console.log('running...')
-  const output = execSync(`java ${fName}`, { cwd: fPath }).toString().slice(0, -1)
+  const output = execSync(`java ${fName}`, { cwd: fPath })
+    .toString()
+    .slice(0, -1)
   console.log('file was run...')
   return output
 }
 
-// TODO: Add model answers and create new and replaced reports
+const replace = (rData, rPath, fName, message) => {
+  if (rData.includes(`${fName}`)) {
+    const regex = `${fName}: ([A-Z]+( )?)+\\n?((.+\\n)*?(?=(e\\d\\d)|\\Z))`
+    const re = RegExp(regex, 'g')
+    const result = rData.replace(re, `${fName}: ${message}\n`)
+
+    try {
+      fs.writeFileSync(rPath, result)
+    } catch (error) {
+      console.log('There was an error with writing to report.txt')
+      console.log(error)
+    }
+  }
+}
+
+const append = (rPath, fName, message) => {
+  fs.appendFileSync(rPath, `${fName}: ${message}\n`, 'utf8')
+}
+
 const check = (exercise, answer, dName) => {
   console.log('checking...')
 
@@ -203,34 +234,45 @@ const check = (exercise, answer, dName) => {
   if (answer === model) correct = true
 
   // If ex was already in report.txt, replace it with answer comparison result
-  if (rData.includes(`${fName}`)) {
+  if (rData.includes(`${exercise}`)) {
     // Don't do anything if the exercise was previously wrong
-    if (!correct && rData.includes(`${fName}: WRONG`)) return
-
-    const regex = `${fName}: ([A-Z]+( )?)+\\n?((.+\\n)*?(?=(e\\d\\d)|\\Z))`
-    const re = RegExp(regex, 'g')
+    if (!correct && rData.includes(`${exercise}: WRONG`)) return
     const exResult = correct ? 'OK' : 'WRONG'
-    const result = rData.replace(re, `${fName}: ${exResult}\n`)
 
-    try {
-      fs.writeFileSync(rPath, result)
-    } catch (error) {
-      console.log('There was an error with writing to report.txt')
-      console.log(error)
-    }
-
+    replace(rData, rPath, exercise, exResult)
     return
   }
 
   // If not, add it to file WRONG
   try {
-    fs.appendFileSync(rPath, `${exercise}: WRONG\n`)
+    append(rPath, exercise, `${exercise}: WRONG\n`)
   } catch (error) {
-    console.log("There was an error with writing to report.txt");
-    console.log(error);
+    console.log('There was an error with writing to report.txt')
+    console.log(error)
   }
 
   console.log()
 }
 
-// TODO: Create function for sorting report.txt
+const sortReport = (rData, rPath) => {
+  const regex = RegExp("\\n(?=e\\d\\d)")
+  const reports = rData.split(regex)
+
+  const sortedData = reports.sort((a, b) => {
+    const aEx = a.match(RegExp(/(?<=e)\d\d/))[0]
+    const bEx = b.match(RegExp(/(?<=e)\d\d/))[0]
+    const aInt = parseInt(aEx)
+    const bInt = parseInt(bEx)
+
+    if (aInt < bInt) return -1
+    if (aInt > bInt) return 1
+    return 0
+  }).join("\n")
+
+  try {
+    fs.writeFileSync(rPath, sortedData)
+  } catch (error) {
+    console.log('There was an error with writing to report.txt')
+    console.log(error)
+  }
+}
