@@ -18,9 +18,7 @@ e08:
 * * * * *
 e09: 
 SCANNER
-e10a: 
-YHDISTÄ/SCANNER
-e10b: 
+e10: 
 YHDISTÄ/SCANNER
 e11: 
 true
